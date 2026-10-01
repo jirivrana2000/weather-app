@@ -4,9 +4,11 @@ import styles from './CitySearch.module.scss'
 
 interface CitySearchProps {
   onCitySelect: (city: City) => void
+  onUseLocation: () => void
+  isLoading: boolean
 }
 
-function CitySearch({ onCitySelect }: CitySearchProps) {
+function CitySearch({ onCitySelect, onUseLocation, isLoading }: CitySearchProps) {
   const [query, setQuery] = useState('')
   const [suggestions, setSuggestions] = useState<City[]>([])
 
@@ -72,6 +74,18 @@ function CitySearch({ onCitySelect }: CitySearchProps) {
         onChange={(event) => setQuery(event.target.value)}
         placeholder="Začněte psát název města..."
       />
+
+      <button
+        type="button"
+        className={styles.locationButton}
+        onClick={() => {
+          setQuery('')
+          onUseLocation()
+        }}
+        disabled={isLoading}
+      >
+        📍 Použít moji polohu
+      </button>
 
       {query && suggestions.length > 0 && (
         <ul className={styles.suggestions}>
