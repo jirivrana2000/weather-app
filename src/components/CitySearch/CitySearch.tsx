@@ -2,10 +2,13 @@ import { useEffect, useState } from 'react'
 import type { City } from '../../models/city'
 import styles from './CitySearch.module.scss'
 
-function CitySearch() {
+interface CitySearchProps {
+  onCitySelect: (city: City) => void
+}
+
+function CitySearch({ onCitySelect }: CitySearchProps) {
   const [query, setQuery] = useState('')
   const [cities, setCities] = useState<City[]>([])
-  const [selectedCity, setSelectedCity] = useState<City | null>(null)
 
   useEffect(() => {
     fetch('/city.list.json')
@@ -17,10 +20,10 @@ function CitySearch() {
     city.name.toLowerCase().includes(query.toLowerCase()),
   )
 
-  const handleCitySelect = (city: City) => {
-    setSelectedCity(city)
-    setQuery(city.name)
-  }
+    const handleCitySelect = (city: City) => {
+      setQuery(city.name)
+      onCitySelect(city)
+    }
 
   return (
     <div className={styles.container}>
@@ -49,11 +52,6 @@ function CitySearch() {
         </ul>
       )}
 
-      {selectedCity && (
-        <p>
-          Vybrané město: {selectedCity.name}, {selectedCity.country}, {selectedCity.coord.lon}, {selectedCity.coord.lat},
-        </p>
-      )}
     </div>
   )
 }
