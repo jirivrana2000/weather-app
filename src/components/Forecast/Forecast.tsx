@@ -3,21 +3,11 @@ import type { WeatherForecast } from '../../models/weather'
 import { groupForecastByDay } from '../../utils/forecastUtils'
 import styles from './Forecast.module.scss'
 import TemperatureChart from './TemperatureChart'
+import { formatDate, formatTime } from '../../utils/formatUtils'
 
 interface ForecastProps {
   forecast: WeatherForecast[]
 }
-
-const formatDate = (date: Date): string =>
-  new Intl.DateTimeFormat(navigator.language, {
-    dateStyle: 'medium',
-  }).format(date)
-
-const formatTime = (timestamp: number): string =>
-  new Intl.DateTimeFormat(navigator.language, {
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(new Date(timestamp * 1000))
 
 function Forecast({ forecast }: ForecastProps) {
   const dailyForecast = groupForecastByDay(forecast)
