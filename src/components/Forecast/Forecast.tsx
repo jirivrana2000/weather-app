@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { WeatherForecast } from '../../models/weather'
 import { groupForecastByDay } from '../../utils/forecastUtils'
 import styles from './Forecast.module.scss'
+import TemperatureChart from './TemperatureChart'
 
 interface ForecastProps {
   forecast: WeatherForecast[]
@@ -89,6 +90,7 @@ function Forecast({ forecast }: ForecastProps) {
                     </tr>
                   </tbody>
                 </table>
+                <TemperatureChart items={day.items} />
               </div>
             )}
           </div>
