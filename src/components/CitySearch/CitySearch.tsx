@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { City } from '../../models/city'
 import styles from './CitySearch.module.scss'
 
@@ -8,20 +8,56 @@ interface CitySearchProps {
 
 function CitySearch({ onCitySelect }: CitySearchProps) {
   const [query, setQuery] = useState('')
-  const [cities, setCities] = useState<City[]>([])
+  const [suggestions, setSuggestions] = useState<City[]>([])
+
+  const workerRef = useRef<Worker | null>(null)
+  const skipSearch = useRef(false)
 
   useEffect(() => {
-    fetch('/city.list.json')
-      .then((response) => response.json())
-      .then((data: City[]) => setCities(data))
+    const worker = new Worker(
+      new URL('../../workers/citySearch.worker.ts', import.meta.url),
+      {
+        type: 'module',
+      },
+    )
+
+    workerRef.current = worker
+
+    worker.onmessage = (event: MessageEvent<City[]>) => {
+       setSuggestions(event.data)
+    }
+
+    worker.postMessage({
+      type: 'load',
+    })
+
+    return () => {
+      worker.terminate()
+    }
   }, [])
 
-  const filteredCities = cities.filter((city) =>
-    city.name.toLowerCase().includes(query.toLowerCase()),
-  )
+  useEffect(() => {
+    if (skipSearch.current) {
+      skipSearch.current = false
+      return
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      workerRef.current?.postMessage({
+        type: 'search',
+        query,
+      })
+    }, 250)
+
+    return () => {
+      window.clearTimeout(timeoutId)
+    }
+  }, [query])
 
     const handleCitySelect = (city: City) => {
+      skipSearch.current = true
       setQuery(city.name)
+      setSuggestions([])
       onCitySelect(city)
     }
 
@@ -37,9 +73,9 @@ function CitySearch({ onCitySelect }: CitySearchProps) {
         placeholder="Začněte psát název města..."
       />
 
-      {query && filteredCities.length > 0 && (
+      {query && suggestions.length > 0 && (
         <ul className={styles.suggestions}>
-          {filteredCities.map((city) => (
+          {suggestions.map((city) => (
             <li key={city.id}>
               <button
                 type="button"
